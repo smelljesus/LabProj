@@ -1,0 +1,338 @@
+#include<iostream>
+#include<fstream>
+#include<windows.h>
+using namespace std;
+ 
+//Структурафайла
+struct FileStruct
+{
+    char FileName[32];//Имяфайла
+    int Day;//деньсоздания
+    int Month;//месяцсоздания
+    int Year;//год создания
+    int Common;//Количество обращений к файлу
+    FileStruct* Next;//Указатель на следующий элемент
+    FileStruct* Previous;//Указатель на предыдущий элемент
+};
+ 
+//Структура описывающая список
+struct dyn_list
+{
+    FileStruct* Begin;//Первый элемент списка - голова
+    FileStruct* End;//Последний элемент списка - хвост
+};
+ 
+void CreateZeroElement(dyn_list&StructName);
+bool Parset(dyn_list StructName);
+void CreateNewObject(dyn_list&StructName, char* FileName, int Day, int Month, int Year, int Common);
+int ReadFile(char* FileName, dyn_list&NameList);
+int ReadList(dyn_list&NameList);
+FileStruct* Unity(dyn_list&NameList, FileStruct* temp);
+int DelFileDate(dyn_list&NameList);
+int SearchCommon(dyn_list&NameList);
+int CreateList(dyn_list&NameList);
+int Prov(dyn_list&FileList);
+ 
+int main()
+{
+    setlocale(LC_ALL, "rus");
+    char FileName[32];
+ 
+    dyn_list NameList;//Создаемсписок
+    CreateZeroElement(NameList);//Создаемпервыйэлемент
+ 
+    while (1)
+    {
+        cout << "------------------------------------------\n";
+        cout << "MENU!";
+        cout << "Vibirite deystviye.\n";
+        cout << "1. Dobavleniye elementov v spisok is faila\n";
+        cout << "2. Dobavleniye elementov v spisok ot ruki\n";
+        cout << "3. Chteniye spiska\n";
+        cout << "4. Poisk elementa s max kol-vom obrasheniy\n";
+        cout << "5. Udaleniye failov menshe zadonay dati\n";
+        cout << "6. Vivod rezultata v fail\n";
+        int Item;
+        cin >> Item;
+        switch (Item)
+        {
+        case 1:
+            ReadFile(FileName, NameList);
+            break;
+        case 2:
+            CreateList(NameList);
+            break;
+        case 3:
+            ReadList(NameList);
+            break;
+        case 4:
+            SearchCommon(NameList);
+            break;
+        case 5:
+            DelFileDate(NameList);
+            break;
+        case 6:
+            Prov(NameList);
+            break;
+        case 0:
+            cout << "Vi vishly is programmi!\n";
+            exit(1);
+        default:
+            cout << "Vi vibrali nesushestvueshee deystvie. Viberite drugoy!\n";
+            break;
+        }
+    }
+ 
+    cout << endl;
+    system("pause");
+    return 0;
+}
+// Созданиепустогосписка
+void CreateZeroElement(dyn_list&StructName)
+{
+    StructName.Begin = NULL;
+}
+ 
+// Проверка списка на пустоту
+bool Parset(dyn_list StructName)
+{
+    return(StructName.Begin == NULL);
+}
+ 
+//создаемновыйэлемент
+void CreateNewObject(dyn_list&StructName, char*FileName, int Day, int Month, int Year, int Common)
+{
+    FileStruct* NewObject = new FileStruct();//Создание
+    strcpy_s(NewObject->FileName, FileName);//Записываемимя
+    NewObject->Day = Day;//День
+    NewObject->Month = Month;//Месяц
+    NewObject->Year = Year;//Год
+    NewObject->Common = Common;//Числообращений
+    NewObject->Next = NULL;//Создаем место для следующего элемента, закрепляем за прошлым
+    NewObject->Previous = StructName.End;
+    if (Parset(StructName))//Проверканапервыйэлемент
+        StructName.Begin = NewObject;
+    else
+        StructName.End->Next = NewObject;
+    StructName.End = NewObject;
+}
+ 
+//Чтениефайла
+int ReadFile(char*FileName, dyn_list&NameList)
+{
+    cout << "------------------------------------------\n";
+    cout << "Chtenie is faila!\n";
+    cout << "Imya faila: ";
+    char FName[32];
+    cin >> FName;
+    char FileName1[32];//Имяфайла
+    int Day;//день создания
+    int Month;//месяц создания
+    int Year;//год создания
+    int Common;//Количество обращений к файлу
+ 
+    fstream File(FName, ios::in);
+    if (!File)return 1;
+ 
+    //File.seekg(0,ios::end);//Переходимвконецфайла
+    //int n = File.tellg();
+    File.seekg(0, ios::beg);//Переходимвначалофайла
+    for (int i = 0; !File.eof(); i++)//Считываемфайл
+    {
+        File >> FileName1;
+        cout << "Name: " << FileName1 << endl;
+ 
+        File >> Day;
+        cout << "Day: " << Day << endl;
+ 
+        File >> Month;
+        cout << "Month: " << Month << endl;
+ 
+        File >> Year;
+        cout << "Year: " << Year << endl;
+ 
+        File >> Common;
+        cout << "Kol-vo obrasheniy: " << Common << "\n\n\n\n";
+ 
+        CreateNewObject(NameList, FileName1, Day, Month, Year, Common);//Передаемвфункциюзначения
+    }//для создания объекта
+    File.close();//Закрываем файл
+    return 0;
+}
+ 
+//Читаемвесьсписок
+int ReadList(dyn_list&NameList)
+{
+    cout << "------------------------------------------\n";
+    cout << "Vivod!\n";
+    FileStruct* Name = NameList.Begin;//Переходим в начало списка
+ 
+    int i = 0;//Счетчик для подсчета кол-ва записей
+    while (Name != NULL)
+    {
+        i++;
+        cout << "Name: " << Name->FileName << endl;
+        cout << "Day: " << Name->Day << endl;
+        cout << "Month: " << Name->Month << endl;
+        cout << "Year: " << Name->Year << endl;
+        cout << "Kol-vo obrasheniy: " << Name->Common << "\n\n\n\n";
+        Name = Name->Next;//Переход к следующей записи
+    }
+    cout << "Kol-vo obrasheniy: " << i << endl;
+    return 0;
+}
+ 
+//Соединение фрагментов цепи(списка)
+FileStruct* Unity(dyn_list&NameList, FileStruct*temp)
+{
+    if (temp->Previous != NULL) temp->Previous->Next = temp->Next;//Еслипредыдущийнеравен 0, тосоединяемследущийипредыдущий
+    if (temp->Next != NULL)temp->Next->Previous = temp->Previous;
+    if (temp == NameList.Begin)NameList.Begin = temp->Next;//Еслиэлементпервый - переходимнаследующий
+    if (temp == NameList.End)NameList.End = temp->Previous;//Еслиэлементпоследний - переходимнапредыдущий
+    return temp;
+}
+ 
+//Удалениефрагментацепи
+int DelFileDate(dyn_list&NameList)
+{
+    cout << "------------------------------------------\n";
+    cout << "Udalenie elementa!\n";
+    int Day, Month, Year;
+ 
+    cout << "Vvedite den', mesyas i god: \n";
+    cin >> Day >> Month >> Year;//Вводим критерии для отбора
+ 
+    FileStruct* temp = NameList.Begin;//Переходим в начало списка
+ 
+    if (temp->Previous = NULL)//Если предыдущий элемент равен 0
+    {
+        NameList.Begin = temp->Next;//Переходим на элемент дальше
+        temp->Next->Previous = NULL;
+    }
+ 
+    while (temp != NULL)//Выполняем поиск до нулевого элемента
+    {
+        FileStruct* remove = NULL;//Переменная для храния элемента
+ 
+        if (temp->Year < Year)//Если год меньше введенного
+        {
+            remove = Unity(NameList, temp);
+        }
+        else if (temp->Year <= Year && temp->Month < Month)// Еслимесяцменьшевведенного
+        {
+            remove = Unity(NameList, temp);
+        }
+        else if (temp->Year <= Year && temp->Month <= Month && temp->Day < Day)// Еслиденьменьшевведенного
+        {
+            remove = Unity(NameList, temp);
+        }
+        temp = temp->Next;
+        if (remove != NULL)//Если что-то нашли - удаляем элемент
+            delete remove;
+    }
+    ReadList(NameList);
+    return 0;
+}
+ 
+//Поиск элемента с максимальным количеством обращений
+int SearchCommon(dyn_list&NameList)
+{
+    cout << "------------------------------------------\n";
+    cout << "poisk elementa s max znacheniem!\n";
+    FileStruct* Name = NameList.Begin;//Переходим в начало списка
+    FileStruct* temp = Name;//Найденный элемент помещаем сюда
+    int i = 0, k, MaxItem = 0;
+ 
+    while (Name != NULL)
+    {
+        i++;
+        if (Name->Common > MaxItem)//Отбираем элемент с максимальным кол-вом обращением
+        {
+            k = i;
+            MaxItem = Name->Common;
+            temp = Name;
+        }
+        Name = Name->Next;
+    }
+    //Выводим
+    cout << "Max element pod nomerom: " << k << endl;
+    cout << "Name: " << temp->FileName << endl;
+    cout << "Day: " << temp->Day << endl;
+    cout << "Month: " << temp->Month << endl;
+    cout << "Year: " << temp->Year << endl;
+    cout << "Kol-vo obrasheniy: " << temp->Common << "\n\n\n\n";
+    return 0;
+}
+ 
+//Созданиесписка
+int CreateList(dyn_list&NameList)
+{
+    SetConsoleCP(1251);//вводрусскихсимволов
+    SetConsoleOutputCP(1251);//вывод
+    char FileName[32];//Имяфайла
+    int Day;//деньсоздания
+    int Month;//месяцсоздания
+    int Year;//год создания
+    int Common;//Количество обращений к файлу
+ 
+    cout << "------------------------------------------\n";
+    cout << "Dobavlenie elementa!\n";
+    int n = 0;
+    cout << "Vvedite kol-vo elementov: ";
+    while (n <= 0)
+    {
+        cin >> n;
+    }
+ 
+    FileStruct* Name = NameList.Begin;
+    cout << "Zapolnite informaciyu!";
+    for (int i = 0; i < n; i++)
+    {
+        getchar();
+        cout << "\n\n";
+        cout << "Name: ";
+        cin.getline(FileName, 31);
+        cout << "Day: ";
+        cin >> Day;
+        cout << "Month: ";
+        cin >> Month;
+        cout << "Year: ";
+        cin >> Year;
+        cout << "Kol-vo obrasheniy: ";
+        cin >> Common;
+        CreateNewObject(NameList, FileName, Day, Month, Year, Common);
+    }
+    return 0;
+}
+ 
+//Выводвфайл
+int Prov(dyn_list&FileList)
+{
+    cout << "------------------------------------------\n";
+    cout << "Vvivod v fail!\n";
+    cout << "Vvedite nazvaniye faila: ";
+    char FName[32];
+    cin >> FName;
+    FileStruct* Name = FileList.Begin;
+    int i = 0;
+    fstream File;
+    File.open(FName, ios::out);
+    while (Name != NULL)
+    {
+        File << Name->FileName << endl;
+        File << Name->Day << endl;
+        File << Name->Month << endl;
+        File << Name->Year << endl;
+        File << Name->Common << endl;
+ 
+        cout << "Name: " << Name->FileName << endl;
+        cout << "Day: " << Name->Day << endl;
+        cout << "Month: " << Name->Month << endl;
+        cout << "Year: " << Name->Year << endl;
+        cout << "Kol-vo obrasheniy: " << Name->Common << "\n\n\n\n";
+        i++;
+        Name = Name->Next;
+    }
+    File.close();
+    return i;
+}
